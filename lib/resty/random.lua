@@ -6,7 +6,8 @@ local C = ffi.C
 ffi.cdef[[
 int RAND_pseudo_bytes(unsigned char *buf, int num);
 int __stdcall CryptAcquireContextW(int *phProv, int pszContainer, int pszProvider, int dwProvType, int dwFlags);
-int __stdcall CryptGenRandom(int  hProv, int  dwLen, char *pbBuffer);
+int __stdcall CryptGenRandom(int hProv, int dwLen, char *pbBuffer);
+int __stdcall CryptReleaseContext(int hProv, int dwFlags);
 ]]
 
 local function bytes(len)
@@ -17,7 +18,8 @@ local function bytes(len)
         local a = ffi.load("Advapi32")
         a.CryptAcquireContextW(p, 0, 0, 1, -268435456)
         a.CryptGenRandom(p[0], len, b)
-        buf = ffi.string(buffer, len)
+        buf = ffi.string(b, len)
+        a.CryptReleaseContext(p[0], 0)
     else
         local random = io.open("/dev/urandom", "rb")
         if random then
