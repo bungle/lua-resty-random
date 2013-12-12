@@ -10,6 +10,8 @@ int __stdcall CryptGenRandom(int hProv, int dwLen, char *pbBuffer);
 int __stdcall CryptReleaseContext(int hProv, int dwFlags);
 ]]
 
+local reseed = true
+
 local function bytes(len)
     local buf
     if ffi.os == "Windows" then
@@ -35,6 +37,21 @@ local function bytes(len)
     return buf
 end
 
+local function number(min, max, seed)
+    if (seed or reseed) then
+        local a,b,c,d = bytes(4):byte(1, 4)
+        math.randomseed(a * 0x1000000 + b * 0x10000 + c * 0x100 + d)
+        reseed = false
+    end
+    if (min and max) then
+        return math.random(min, max)
+    elseif (min) then
+        return math.random(min)
+    end
+    return math.random()
+end
+
 return {
-    bytes = bytes
+    bytes = bytes,
+    number = number
 }
