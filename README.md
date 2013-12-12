@@ -1,4 +1,4 @@
-lua_resty_random
+lua-resty-random
 ================
 
 LuaJIT FFI-based Random Library for OpenResty
