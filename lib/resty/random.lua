@@ -51,7 +51,23 @@ local function number(min, max, seed)
     return math.random()
 end
 
+local function token(len)
+    local str = ""
+    for i=1,len do
+        local a = number(1,3)
+        if (a == 1) then
+            str = str .. string.char(number(48, 57))
+        elseif (a == 2) then
+            str = str .. string.char(number(65, 90))
+        else
+            str = str .. string.char(number(97, 122))
+        end
+    end
+    return str
+end
+
 return {
     bytes = bytes,
-    number = number
+    number = number,
+    token = token
 }
