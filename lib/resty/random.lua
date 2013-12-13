@@ -41,6 +41,11 @@ local function number(min, max, seed)
     if (seed or reseed) then
         local a,b,c,d = bytes(4):byte(1, 4)
         math.randomseed(a * 0x1000000 + b * 0x10000 + c * 0x100 + d)
+        math.random()
+        math.random()
+        math.random()
+        math.random()
+        math.random()
         reseed = false
     end
     if (min and max) then
