@@ -1,7 +1,11 @@
 local ffi = require "ffi"
 local ffi_new = ffi.new
 local ffi_str = ffi.string
+local ffi_load = ffi.load
+local OS = ffi.os
 local C = ffi.C
+local random = math.random
+local char = string.char
 
 ffi.cdef[[
 int RAND_pseudo_bytes(unsigned char *buf, int num);
@@ -14,19 +18,19 @@ local reseed = true
 
 local function bytes(len)
     local buf
-    if ffi.os == "Windows" then
-        local p = ffi.new("int[?]", 1)
-        local b = ffi.new("char[?]", len + 2)
-        local a = ffi.load("Advapi32")
+    if OS == "Windows" then
+        local p = ffi_new("int[?]", 1)
+        local b = ffi_new("char[?]", len + 2)
+        local a = ffi_load("Advapi32")
         a.CryptAcquireContextW(p, 0, 0, 1, -268435456)
         a.CryptGenRandom(p[0], len, b)
-        buf = ffi.string(b, len)
+        buf = ffi_str(b, len)
         a.CryptReleaseContext(p[0], 0)
     else
-        local random = io.open("/dev/urandom", "rb")
-        if random then
-            buf = random:read(len)
-            random:close()
+        local r = io.open("/dev/urandom", "rb")
+        if r then
+            buf = r:read(len)
+            r:close()
         end
     end
     if not buf then
@@ -42,15 +46,15 @@ local function number(min, max, seed)
         local a,b,c,d = bytes(4):byte(1, 4)
         math.randomseed(a * 0x1000000 + b * 0x10000 + c * 0x100 + d)
         -- Warmup, not sure if this is neccessary.
-        for i=1,6 do math.random() end
+        for i=1,6 do random() end
         reseed = false
     end
     if (min and max) then
-        return math.random(min, max)
+        return random(min, max)
     elseif (min) then
-        return math.random(min)
+        return random(min)
     end
-    return math.random()
+    return random()
 end
 
 local function token(len)
@@ -58,18 +62,18 @@ local function token(len)
     for i=1,len do
         local a = number(1,3)
         if (a == 1) then
-            str = str .. string.char(number(48, 57))
+            str = str .. char(number(48, 57))
         elseif (a == 2) then
-            str = str .. string.char(number(65, 90))
+            str = str .. char(number(65, 90))
         else
-            str = str .. string.char(number(97, 122))
+            str = str .. char(number(97, 122))
         end
     end
     return str
 end
 
 return {
-    bytes = bytes,
+    bytes  = bytes,
     number = number,
-    token = token
+    token  = token
 }
