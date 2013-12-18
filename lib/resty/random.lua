@@ -6,7 +6,6 @@ local OS = ffi.os
 local C = ffi.C
 local type = type
 local random = math.random
-local char = string.char
 
 ffi.cdef[[
 int RAND_pseudo_bytes(unsigned char *buf, int num);
