@@ -73,7 +73,7 @@ local function token(len, chars)
     if (type(chars) ~= "table") then
         chars = tostring(chars)
         count = #chars
-        for i=1, len do
+        for i=1,len do
             n = number(1, count)
             token[i] = chars:sub(n, n)
         end
