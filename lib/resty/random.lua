@@ -70,13 +70,15 @@ local function token(len, chars)
         '0','1','2','3','4','5','6','7','8','9'
     }
     token = new_tab(len, 0)
-    count = #chars
-    if (type(chars) == "string") then
+    if (type(chars) ~= "table") then
+        chars = tostring(chars)
+        count = #chars
         for i=1, len do
             n = number(1, count)
             token[i] = chars:sub(n, n)
         end
     else
+        count = #chars
         for i=1,len do token[i] = chars[number(1, count)] end
     end
     return table.concat(token)
