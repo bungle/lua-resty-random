@@ -4,6 +4,7 @@ local ffi_str = ffi.string
 local ffi_load = ffi.load
 local OS = ffi.os
 local C = ffi.C
+local type = type
 local random = math.random
 local char = string.char
 
@@ -15,6 +16,11 @@ int __stdcall CryptReleaseContext(int hProv, int dwFlags);
 ]]
 
 local reseed = true
+
+local ok, new_tab = pcall(require, "table.new")
+if not ok then
+    new_tab = function (narr, nrec) return {} end
+end
 
 local function bytes(len)
     local buf
@@ -57,19 +63,23 @@ local function number(min, max, seed)
     return random()
 end
 
-local function token(len)
-    local str = ""
-    for i=1,len do
-        local a = number(1,3)
-        if (a == 1) then
-            str = str .. char(number(48, 57))
-        elseif (a == 2) then
-            str = str .. char(number(65, 90))
-        else
-            str = str .. char(number(97, 122))
+local function token(len, chars)
+    chars = chars or {
+        'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+        'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+        '0','1','2','3','4','5','6','7','8','9'
+    }
+    token = new_tab(len, 0)
+    count = #chars
+    if (type(chars) == "string") then
+        for i=1, len do
+            n = number(1, count)
+            token[i] = chars:sub(n, n)
         end
+    else
+        for i=1,len do token[i] = chars[number(1, count)] end
     end
-    return str
+    return table.concat(token)
 end
 
 return {
