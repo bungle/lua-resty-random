@@ -43,16 +43,30 @@ if (OS == "Windows") then
     int __stdcall CryptReleaseContext(int hProv, int dwFlags);
     ]]
     local a = ffi_load("Advapi32")
-    local p = ffi_new("int[?]", 1)
-    a.CryptAcquireContextW(p, 0, 0, 1, -268435456)
-    srandom = function(len)
-        local b = ffi_new("char[?]", len + 2)
-        a.CryptGenRandom(p[0], len, b)
-        return ffi_str(buf, len)
+    if a then
+        local p = ffi_new("int[?]", 1)
+        if a.CryptAcquireContextW(p, 0, 0, 1, -268435456) == 1 then
+            srandom = function(len)
+                local b = ffi_new("char[?]", len + 2)
+                if a.CryptGenRandom(p[0], len, b) == 1 then
+                    return ffi_str(buf, len)
+                else
+                    return false
+                end
+            end
+        else
+            srandom = prandom
+        end
+    else
+        srandom = prandom
     end
 else
     local r = open("/dev/urandom", "rb")
-    srandom = function(len) return r:read(len) end
+    if r then
+        srandom = function(len) return r:read(len) or false end
+    else
+        srandom = prandom
+    end
 end
 
 local function prandom(len)
