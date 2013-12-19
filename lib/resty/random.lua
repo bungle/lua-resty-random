@@ -28,27 +28,30 @@ local alnum  = {
     '0','1','2','3','4','5','6','7','8','9'
 }
 local function erandom(...) return nil,false end
+local function prandom(len)
+    local b = ffi_new("char[?]", len)
+    local strong = C.RAND_pseudo_bytes(b, len)
+    return ffi_str(b, len), strong == 1
+end
 local srandom
 
 if pcall(prandom, 1) then
-    srandom = function(len)
-        local b = ffi_new("char[?]", len)
-        local strong = C.RAND_pseudo_bytes(b, len)
-        return ffi_str(b, len), strong == 1
-    end
+    srandom = prandom
 else
     if (OS == "Windows") then
         ffi_cdef[[
-        unsigned char __stdcall RtlGenRandom(char *RandomBuffer, unsigned long RandomBufferLength)
+        unsigned char __stdcall SystemFunction036(
+            void *RandomBuffer,
+            unsigned long RandomBufferLength);
         ]]
-        local a = ffi_load("Advapi32")
-        if a then
+        local o,a = pcall(ffi_load, "Advapi32")
+        if o then
             srandom = function(len)
                 local b = ffi_new("char[?]", len)
-                if a.RtlGenRandom(b, len) ~= 0 then
-                    return ffi_str(buf, len),true
+                if a.SystemFunction036(b, len) == 1 then
+                  return ffi_str(b, len),true
                 else
-                    return nil,false
+                  return nil,false
                 end
             end
         else
