@@ -20,7 +20,6 @@ if not ok then
     new_tab = function (narr, nrec) return {} end
 end
 
-local reseed = true
 local alnum  = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',
     'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
@@ -28,68 +27,57 @@ local alnum  = {
     'n','o','p','q','r','s','t','u','v','w','x','y','z',
     '0','1','2','3','4','5','6','7','8','9'
 }
-
+local function erandom(...) return nil,false end
 local srandom
 
-if (OS == "Windows") then
-    ffi_cdef[[
-    int __stdcall CryptAcquireContextW(
-        int *phProv,
-        int pszContainer,
-        int pszProvider,
-        int dwProvType,
-        int dwFlags);
-    int __stdcall CryptGenRandom(int hProv, int dwLen, char *pbBuffer);
-    int __stdcall CryptReleaseContext(int hProv, int dwFlags);
-    ]]
-    local a = ffi_load("Advapi32")
-    if a then
-        local p = ffi_new("int[?]", 1)
-        if a.CryptAcquireContextW(p, 0, 0, 1, -268435456) == 1 then
+if pcall(prandom, 1) then
+    srandom = function(len)
+        local b = ffi_new("char[?]", len)
+        local strong = C.RAND_pseudo_bytes(b, len)
+        return ffi_str(b, len), strong == 1
+    end
+else
+    if (OS == "Windows") then
+        ffi_cdef[[
+        unsigned char __stdcall RtlGenRandom(char *RandomBuffer, unsigned long RandomBufferLength)
+        ]]
+        local a = ffi_load("Advapi32")
+        if a then
             srandom = function(len)
-                local b = ffi_new("char[?]", len + 2)
-                if a.CryptGenRandom(p[0], len, b) == 1 then
-                    return ffi_str(buf, len)
+                local b = ffi_new("char[?]", len)
+                if a.RtlGenRandom(b, len) ~= 0 then
+                    return ffi_str(buf, len),true
                 else
-                    return false
+                    return nil,false
                 end
             end
         else
-            srandom = prandom
+            srandom = erandom
         end
     else
-        srandom = prandom
+        local r = open("/dev/urandom", "rb")
+        if r then
+            srandom = function(len) return r:read(len),false or nil,false end
+        else
+            srandom = erandom
+        end
     end
-else
-    local r = open("/dev/urandom", "rb")
-    if r then
-        srandom = function(len) return r:read(len) or false end
-    else
-        srandom = prandom
-    end
-end
-
-local function prandom(len)
-    local b = ffi_new("char[?]", len)
-    C.RAND_pseudo_bytes(b, len)
-    return ffi_str(b, len)
 end
 
 local function bytes(len)
-    return srandom(len) or prandom(len)
+    return srandom(len)
 end
 
-local function number(min, max, seed)
-    if (seed or reseed) then
-        local a,b,c,d = bytes(4):byte(1, 4)
-        randomseed(a * 0x1000000 + b * 0x10000 + c * 0x100 + d)
-        -- Warmup, not sure if this is neccessary.
-        for i=1,6 do random() end
-        reseed = false
-    end
-    if (min and max) then return random(min, max)
-    elseif (min)     then return random(min)
-    else                  return random() end
+local function seed()
+    local a,b,c,d = bytes(4):byte(1, 4)
+    return randomseed(a * 0x1000000 + b * 0x10000 + c * 0x100 + d)
+end
+
+local function number(min, max, reseed)
+    if reseed then seed() end
+    if min and max then return random(min, max)
+    elseif min     then return random(min)
+    else                return random() end
 end
 
 local function token(len, chars)
@@ -110,6 +98,8 @@ local function token(len, chars)
     end
     return concat(token)
 end
+
+seed()
 
 return {
     bytes  = bytes,
