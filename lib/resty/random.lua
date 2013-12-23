@@ -2,17 +2,17 @@ local ffi        = require "ffi"
 local ffi_cdef   = ffi.cdef
 local ffi_new    = ffi.new
 local ffi_str    = ffi.string
-local ffi_load   = ffi.load
-local OS         = ffi.os
+local ffi_typeof = ffi.typeof
 local C          = ffi.C
 local type       = type
 local random     = math.random
 local randomseed = math.randomseed
 local concat     = table.concat
-local open       = io.open
 
 ffi_cdef[[
-int RAND_pseudo_bytes(unsigned char *buf, int num);
+typedef unsigned char u_char;
+u_char * ngx_hex_dump(u_char *dst, const u_char *src, size_t len);
+int RAND_pseudo_bytes(u_char *buf, int num);
 ]]
 
 local ok, new_tab = pcall(require, "table.new")
@@ -27,48 +27,26 @@ local alnum  = {
     'n','o','p','q','r','s','t','u','v','w','x','y','z',
     '0','1','2','3','4','5','6','7','8','9'
 }
-local function erandom(...) return nil,false end
-local function prandom(len)
-    local b = ffi_new("char[?]", len)
-    local strong = C.RAND_pseudo_bytes(b, len)
-    return ffi_str(b, len), strong == 1
-end
-local srandom
 
-if pcall(prandom, 1) then
-    srandom = prandom
-else
-    if (OS == "Windows") then
-        ffi_cdef[[
-        unsigned char __stdcall SystemFunction036(
-            void *RandomBuffer,
-            unsigned long RandomBufferLength);
-        ]]
-        local o,a = pcall(ffi_load, "Advapi32")
-        if o then
-            srandom = function(len)
-                local b = ffi_new("char[?]", len)
-                if a.SystemFunction036(b, len) == 1 then
-                  return ffi_str(b, len),true
-                else
-                  return nil,false
-                end
-            end
-        else
-            srandom = erandom
-        end
+local t = ffi_typeof("uint8_t[?]")
+
+local function hex(s, len)
+    local b = ffi_new(t, len * 2)
+    C.ngx_hex_dump(b, s, len)
+    return ffi_str(b, len)
+end
+
+local function bytes(len, format)
+    local s = ffi_new(t, len)
+    local strong = C.RAND_pseudo_bytes(s, len) == 1
+    if not s then return nil,false end
+    if format == 'hex' then
+        local b = ffi_new(t, len * 2)
+        C.ngx_hex_dump(b, s, len)
+        return ffi_str(b, len * 2),strong
     else
-        local r = open("/dev/urandom", "rb")
-        if r then
-            srandom = function(len) return r:read(len),false or nil,false end
-        else
-            srandom = erandom
-        end
+        return ffi_str(s, len),strong
     end
-end
-
-local function bytes(len)
-    return srandom(len)
 end
 
 local function seed()
