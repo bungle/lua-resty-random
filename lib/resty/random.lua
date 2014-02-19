@@ -30,11 +30,6 @@ local alnum  = {
 
 local t = ffi_typeof("uint8_t[?]")
 
-local function hex(s, len)
-    local b = ffi_new(t, len * 2)
-    C.ngx_hex_dump(b, s, len)
-    return ffi_str(b, len)
-end
 
 local function bytes(len, format)
     local s = ffi_new(t, len)
@@ -65,7 +60,7 @@ local function token(len, chars)
     chars = chars or alnum
     local count
     local token = new_tab(len, 0)
-    if (type(chars) ~= "table") then
+    if type(chars) ~= "table" then
         chars = tostring(chars)
         count = #chars
         local n
