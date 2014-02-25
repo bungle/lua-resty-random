@@ -30,7 +30,6 @@ local alnum  = {
 
 local t = ffi_typeof("uint8_t[?]")
 
-
 local function bytes(len, format)
     local s = ffi_new(t, len)
     local strong = C.RAND_pseudo_bytes(s, len) == 1
