@@ -69,7 +69,6 @@ print(random.token(10, { "Ford", "Audi", "Mustang", "A6" }, " "))
 ```
 LuaJIT FFI-based Random Library for OpenResty
 
-
 Copyright (c) 2013, Aapo Talvensaari
 All rights reserved.
 
