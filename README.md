@@ -7,8 +7,6 @@ This library works only in OpenResty (or Nginx with Lua module) that has OpenSSL
 
 ## Hello World with lua-resty-random
 
-##### Lua
-
 ```lua
 local random = require "resty.random"
 -- Get two random bytes
@@ -28,7 +26,7 @@ For random bytes `lua-resty-random` uses OpenSSL `RAND_pseudo_bytes` that is inc
 ## Lua API
 #### string random.bytes(len, format)
 
-Returns `len` number of random bytes using OpenSSL `RAND_pseudo_bytes`. You may optionally pass `"hex"` as format if you want random bytes hexadecimal encoded.
+Returns `len` number of random bytes using OpenSSL `RAND_pseudo_bytes`. You may optionally pass `"hex"` as format argument if you want random bytes hexadecimal encoded.
 
 ##### Example
 
@@ -36,6 +34,32 @@ Returns `len` number of random bytes using OpenSSL `RAND_pseudo_bytes`. You may 
 local random = require "resty.random"
 print(random.bytes(10))
 print(random.bytes(10, "hex")
+```
+
+#### number random.number(min, max, reseed)
+
+Returns random number between `min` and `max` (including `min` and `max`). You may optionally pass `true` as reseed argument if you want to reseend random number generator (normally not needed, and random number generator is seeded once when you do `require "resty.random"`.
+
+##### Example
+
+```lua
+local random = require "resty.random"
+print(random.number(1, 10))
+print(random.number(1, 10, true))
+```
+
+#### string random.token(len, chars, sep)
+
+Returns random token consisting of chars (by default it uses A-Z, a-z, and 0-9 as chars). You may also pass a string as a separator with `sep` argument.
+
+##### Example
+
+```lua
+local random = require "resty.random"
+print(random.token(10))
+print(random.token(10, "ABCD"))
+print(random.token(10, { "A", "B", "C", "D" }))
+print(random.token(10, { "Ford", "Audi", "Mustang", "A6" }, " "))
 ```
 
 ## License
