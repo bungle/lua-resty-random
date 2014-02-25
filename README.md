@@ -36,9 +36,7 @@ Returns `len` number of random bytes using OpenSSL `RAND_pseudo_bytes`. You may 
 local random = require "resty.random"
 print(random.bytes(10))
 print(random.bytes(10, "hex")
-]])
 ```
-
 
 ## License
 
