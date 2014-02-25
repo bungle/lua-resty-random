@@ -57,7 +57,6 @@ end
 
 local function token(len, chars, sep)
     chars = chars or alnum
-    sep = sep or ""
     local count
     local token = new_tab(len, 0)
     if type(chars) ~= "table" then
