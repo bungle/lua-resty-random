@@ -55,8 +55,9 @@ local function number(min, max, reseed)
     else                return random() end
 end
 
-local function token(len, chars)
+local function token(len, chars, sep)
     chars = chars or alnum
+    sep = sep or ""
     local count
     local token = new_tab(len, 0)
     if type(chars) ~= "table" then
@@ -71,7 +72,7 @@ local function token(len, chars)
         count = #chars
         for i=1,len do token[i] = chars[number(1, count)] end
     end
-    return concat(token)
+    return concat(token, sep)
 end
 
 seed()
