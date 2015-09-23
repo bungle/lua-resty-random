@@ -33,13 +33,13 @@ local t = ffi_typeof("uint8_t[?]")
 local function bytes(len, format)
     local s = ffi_new(t, len)
     C.RAND_bytes(s, len)
-    if not s then return nil,false end
-    if format == 'hex' then
+    if not s then return nil end
+    if format == "hex" then
         local b = ffi_new(t, len * 2)
         C.ngx_hex_dump(b, s, len)
-        return ffi_str(b, len * 2),true
+        return ffi_str(b, len * 2), true
     else
-        return ffi_str(s, len),true
+        return ffi_str(s, len), true
     end
 end
 
