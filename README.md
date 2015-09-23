@@ -21,12 +21,12 @@ local token = random.token(10)
 
 ## About The Internals
 
-For random bytes `lua-resty-random` uses OpenSSL `RAND_pseudo_bytes` that is included in OpenResty (or Nginx) when compiled with OpenSSL. For random numbers the library uses Lua's `math.random`, and `math.randomseed`. You should note that on LuaJIT environment, LuaJIT uses a Tausworthe PRNG with period 2^223 to implement `math.random` and `math.randomseed`. Hexadecimal dumps are implemented using `ngx_hex_dump`.
+For random bytes `lua-resty-random` uses OpenSSL `RAND_bytes` that is included in OpenResty (or Nginx) when compiled with OpenSSL. For random numbers the library uses Lua's `math.random`, and `math.randomseed`. You should note that on LuaJIT environment, LuaJIT uses a Tausworthe PRNG with period 2^223 to implement `math.random` and `math.randomseed`. Hexadecimal dumps are implemented using `ngx_hex_dump`.
 
 ## Lua API
 #### string random.bytes(len, format)
 
-Returns `len` number of random bytes using OpenSSL `RAND_pseudo_bytes`. You may optionally pass `"hex"` as format argument if you want random bytes hexadecimal encoded.
+Returns `len` number of random bytes using OpenSSL `RAND_bytes`. You may optionally pass `"hex"` as format argument if you want random bytes hexadecimal encoded.
 
 ##### Example
 
