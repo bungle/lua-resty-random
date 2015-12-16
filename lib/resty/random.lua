@@ -15,7 +15,7 @@ local pcall      = pcall
 ffi_cdef[[
 typedef unsigned char u_char;
 u_char * ngx_hex_dump(u_char *dst, const u_char *src, size_t len);
-int RAND_pseudo_bytes(u_char *buf, int num);
+int RAND_bytes(u_char *buf, int num);
 ]]
 
 local ok, new_tab = pcall(require, "table.new")
@@ -35,14 +35,14 @@ local t = ffi_typeof "uint8_t[?]"
 
 local function bytes(len, format)
     local s = ffi_new(t, len)
-    local strong = C.RAND_pseudo_bytes(s, len) == 1
-    if not s then return nil,false end
-    if format == 'hex' then
+    C.RAND_bytes(s, len)
+    if not s then return nil end
+    if format == "hex" then
         local b = ffi_new(t, len * 2)
         C.ngx_hex_dump(b, s, len)
-        return ffi_str(b, len * 2),strong
+        return ffi_str(b, len * 2), true
     else
-        return ffi_str(s, len),strong
+        return ffi_str(s, len), true
     end
 end
 
